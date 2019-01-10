@@ -3,7 +3,3 @@ gcc -g -Wall -std=gnu99 -o count count.c
 gcc -g -Wall -std=gnu99 -o echo_arg echo_arg.c
 gcc -g -Wall -std=gnu99 -o echo_stdin echo_stdin.c
 gcc -g -Wall -std=gnu99 -o hello hello.c
-./count 10
-./echo_arg 10
-./echo_stdin
-./hello
