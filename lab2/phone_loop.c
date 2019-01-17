@@ -3,18 +3,21 @@
 int main(){
     char phone[11];
     int number;
-    while(scanf("%s%d", phone, &number) != EOF){
+    int return_value = 0;
+    scanf("%s", phone);
+    while(scanf("%d", &number) != EOF){
         if(number >= -1 && number <= 9){
             if(number == -1){
-                printf("%s", phone);
+                printf("%s\n", phone);
             }
             else{
-            printf("%c", phone[number]);
+            printf("%c\n", phone[number]);
             }
         }
         else{
-        printf("ERROR");
+        printf("ERROR\n");
+        return_value = 1;
         }
     }
-    return 0;
+    return return_value;
 }
