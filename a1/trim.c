@@ -13,17 +13,32 @@ int main(int argc, char **argv) {
          fprintf(stderr, "Usage: %s tracefile markerfile\n", argv[0]);
          exit(1);
     }
-
+    FILE *output_fp;
+    FILE *marker_fp;
+    output_fp = fopen(argv[1], "r");
+    marker_fp = fopen(argv[2], "r");
     // Addresses should be stored in unsigned long variables
     // unsigned long start_marker, end_marker;
-
-
-
-    /* For printing output, use this exact formatting string where the
-     * first conversion is for the type of memory reference, and the second
-     * is the address
-     */
-    // printf("%c,%#lx\n", VARIABLES TO PRINT GO HERE);
-
+    unsigned long start_marker;
+    unsigned long end_marker;
+    char reference;
+    unsigned long address;
+    int size;
+    int is_end = 0;
+    int is_start = 0;
+    fscanf(marker_fp, "%lx %lx", &start_marker, &end_marker);
+    while(fscanf(output_fp, " %c %lx,%d", &reference, &address, &size) != EOF && !is_end){
+        if(is_start == 1 && address != end_marker){
+            printf("%c,%#lx\n", reference, address);
+        }
+        if(address == start_marker){
+            is_start = 1;
+        }
+        if(address == end_marker){
+            is_end = 1;
+        }
+    }
+    fclose(output_fp);
+    fclose(marker_fp);
     return 0;
 }

@@ -15,7 +15,9 @@ int main(int argc, char **argv) {
     }
 
     int size = strlen(argv[1]);
-    
-    // TODO: complete the main function
-
+    for(int i=0; i < strtol(argv[2], NULL, 10); i++){
+        print_state(argv[1], size);
+        update_state(argv[1], size);
+    }
+    return 0;
 }

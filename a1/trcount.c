@@ -27,27 +27,39 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Usage: %s [tracefile]\n", argv[0]);
         exit(1);
     }
-
     /* Complete the implementation */
-
-
-    /* Use these print statements to print the ouput. It is important that 
-     * the output match precisely for testing purposes.
-     * Fill in the relevant variables in each print statement.
-     * The print statements are commented out so that the program compiles.  
-     * Uncomment them as you get each piece working.
-     */
-    /*
+    char reference;
+    unsigned long address;
+    int size;
+    int num_Instr=0, num_Mod=0, num_Load=0, num_Store=0, global=0, heap=0, stack=0;
+    while(fscanf(fp, " %c %lx,%d", &reference, &address, &size) != EOF){
+        if(reference == 'I'){
+            num_Instr += 1;
+        }else{
+            if(reference == 'M'){
+            num_Mod += 1;
+            }else if(reference == 'S'){
+            num_Store += 1;
+            }else if(reference == 'L'){
+            num_Load += 1;
+            }
+            if(address >= GLOBALS_START && address <= GLOBALS_END){
+                global += 1;
+            }else if(address >= HEAP_START && address <= HEAP_END){
+                heap += 1;
+            }else if(address >= STACK_START){
+                stack += 1;
+            }
+        }
+    }
     printf("Reference Counts by Type:\n");
-    printf("    Instructions: %d\n", );
-    printf("    Modifications: %d\n", );
-    printf("    Loads: %d\n", );
-    printf("    Stores: %d\n", );
+    printf("    Instructions: %d\n", num_Instr);
+    printf("    Modifications: %d\n", num_Mod);
+    printf("    Loads: %d\n", num_Load);
+    printf("    Stores: %d\n", num_Store);
     printf("Data Reference Counts by Location:\n");
-    printf("    Globals: %d\n", );
-    printf("    Heap: %d\n", );
-    printf("    Stack: %d\n", );
-    */
-
+    printf("    Globals: %d\n", global);
+    printf("    Heap: %d\n", heap);
+    printf("    Stack: %d\n", stack);
     return 0;
 }
