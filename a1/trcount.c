@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
     char reference;
     unsigned long address;
     int num_Instr=0, num_Mod=0, num_Load=0, num_Store=0, global=0, heap=0, stack=0;
-    while(fscanf(fp, "%c,%lx", &reference, &address) != EOF){
+    while(fscanf(fp, "%c,%lx\n", &reference, &address) != EOF){
         if(reference == 'I'){
             num_Instr += 1;
         }else{
