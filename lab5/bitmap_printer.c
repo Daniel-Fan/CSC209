@@ -38,6 +38,10 @@ int main(int argc, char **argv) {
     }
 
     // Clean up: you need to do this!
-
+    fclose(image);
+    for(int i = 0; i < height; i++){
+        free(pixels[i]);
+    }
+    free(pixels);
     return 0;
 }

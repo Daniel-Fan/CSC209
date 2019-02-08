@@ -8,7 +8,13 @@
  * height in the given bitmap file.
  */
 void read_bitmap_metadata(FILE *image, int *pixel_array_offset, int *width, int *height) {
-
+    fseek(image, 10, SEEK_SET);
+    fread(pixel_array_offset, sizeof(int), 1, image);
+    fseek(image, 18, SEEK_SET);
+    fread(width, sizeof(int), 1, image);
+    fseek(image, 22, SEEK_SET);
+    fread(height, sizeof(int), 1, image);
+    rewind(image);
 }
 
 /*
@@ -28,7 +34,13 @@ void read_bitmap_metadata(FILE *image, int *pixel_array_offset, int *width, int 
  * 4. Return the address of the first `struct pixel *` you initialized.
  */
 struct pixel **read_pixel_array(FILE *image, int pixel_array_offset, int width, int height) {
-
+    struct pixel **pixels = malloc(sizeof(struct pixel *) * height);
+    fseek(image, pixel_array_offset, SEEK_SET);
+    for(int i = 0; i < height; i++){
+        pixels[i] = malloc(width * sizeof(struct pixel));
+        fread(pixels[i], sizeof(struct pixel), width, image);
+    }
+    return pixels;
 }
 
 
