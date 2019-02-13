@@ -21,12 +21,20 @@ char **prune_word_list(char **words, int len, int *words_remaining) {
     while(words[i] != NULL){
         if(strlen(words[i]) == len){
             words_list_pruned = realloc(words_list_pruned, (*words_remaining + 1) * sizeof(char *));
+            if(!words_list_pruned){
+                perror("realloc error in prune_word_list for comparing");
+                exit(1);
+            }
             words_list_pruned[*words_remaining] = words[i];
             (*words_remaining)++;
         }
         i++;
     }
     words_list_pruned = realloc(words_list_pruned, (*words_remaining + 1) * sizeof(char *));
+    if(!words_list_pruned){
+                perror("realloc error in prune_word_list for last space");
+                exit(1);
+            }
     words_list_pruned[*words_remaining] = NULL;
     return words_list_pruned;
 }
@@ -55,13 +63,12 @@ void deallocate_pruned_word_list(char **word_list) {
     printf("There are no words of that length.\n");
 */
 char **get_word_list_of_length(char **words, int *len) {
-    char *error;
     char buffer[BUFSIZ];
     int words_remaining = 0;
     char **words_list;
     while(words_remaining == 0){
         printf("Length of words to use? ");
-        error = fgets(buffer, BUFSIZ, stdin);
+        fgets(buffer, BUFSIZ, stdin);
         *len = strtol(buffer, NULL, 10);
         if(*len == 0){
             printf("There are no words of that length.\n");

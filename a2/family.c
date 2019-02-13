@@ -49,9 +49,21 @@ void print_families(Family* fam_list) {
 */
 Family *new_family(char *str) {
     Family *new_fam = malloc(sizeof(Family));
+    if(!new_fam){
+        perror("error in new_fam malloc in new_family");
+        exit(1);
+    }
     new_fam->signature = malloc((strlen(str) + 1) * sizeof(char));
+    if(!new_fam->signature){
+        perror("error in signature malloc in new_family");
+        exit(1);
+    }
     strcpy(new_fam->signature, str);
     new_fam->word_ptrs = malloc((family_increment + 1) * sizeof(char *));
+    if(!new_fam->word_ptrs){
+        perror("error in word_ptrs malloc in new_family");
+        exit(1);
+    }
     new_fam->word_ptrs[family_increment] = NULL;
     new_fam->num_words = 0;
     new_fam->max_words = family_increment;
@@ -68,6 +80,10 @@ void add_word_to_family(Family *fam, char *word) {
     if(fam->max_words == fam->num_words){
         fam->max_words += family_increment;
         fam->word_ptrs = realloc(fam->word_ptrs, (fam->max_words + 1) * sizeof(char *));
+        if(!fam->word_ptrs){
+            perror("error in fam->word_ptrs realloc in add_word");
+            exit(1);
+        }
     }
     fam->word_ptrs[fam->num_words] = word;
     fam->word_ptrs[fam->num_words + 1] = NULL;
@@ -154,15 +170,17 @@ Family *generate_families(char **word_list, char letter) {
             fam_list = new_family(current_sig);
             add_word_to_family(fam_list, word_list[j]);
         }
-        else if(find_family(fam_list, current_sig) == NULL){
-            Family *head_fam = new_family(current_sig);
-            add_word_to_family(head_fam, word_list[j]);
-            head_fam->next = fam_list;
-            fam_list = head_fam;
-        }
         else{
             Family *current_fam = find_family(fam_list, current_sig);
-            add_word_to_family(current_fam, word_list[j]);
+            if(current_fam == NULL){
+                Family *head_fam = new_family(current_sig);
+                head_fam->next = fam_list;
+                fam_list = head_fam;
+                add_word_to_family(fam_list, word_list[j]);
+            }
+            else{
+                add_word_to_family(current_fam, word_list[j]);
+            }
         }
         j++;
     }
@@ -186,6 +204,9 @@ char **get_new_word_list(Family *fam) {
     int i = 0;
     char **words_list = NULL;
     words_list = malloc((fam->num_words + 1) * sizeof(char *));
+    if(!words_list){
+        perror("error in words_list malloc in get_new_word_list");
+    }
     while(fam->word_ptrs[i] != NULL){
         words_list[i] = fam->word_ptrs[i];
         i++;
