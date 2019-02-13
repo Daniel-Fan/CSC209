@@ -156,7 +156,7 @@ Family *generate_families(char **word_list, char letter) {
     while(word_list[j] != NULL){
         int i = 0;
         int size = strlen(word_list[j]) + 1;
-        char current_sig[size + 1];
+        char current_sig[size];
         while(word_list[j][i] != '\0'){
             if(word_list[j][i] != letter){
                 current_sig[i] = '-';
@@ -166,6 +166,7 @@ Family *generate_families(char **word_list, char letter) {
             }
             i++;
         }
+        current_sig[i] = '\0';
         if(fam_list == NULL){
             fam_list = new_family(current_sig);
             add_word_to_family(fam_list, word_list[j]);
