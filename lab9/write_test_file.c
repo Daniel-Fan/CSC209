@@ -17,12 +17,15 @@ int main(int argc, char **argv) {
         perror("fopen");
         exit(1);
     }
-
+    int r;
     // TODO: complete this program according its description above.
-
-
-
-
+    for(int i = 0; i < 100; i++){
+        r = random() % 100;
+        if(fwrite(&r, sizeof(int), 1, fp) != 1){
+            perror("fwrite");
+            exit(1);
+        }
+    }
 
     fclose(fp);
     return 0;
