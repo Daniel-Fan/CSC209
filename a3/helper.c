@@ -16,9 +16,12 @@ int get_file_size(char *filename) {
     return sbuf.st_size;
 }
 
+//divide the input file to n parts for n child processors
 int *divide_records(int num_chunks, int num_records){
+    //malloc for chunks
     int *chunks_records;
     chunks_records = malloc(sizeof(int)*num_chunks);
+    //find the size of each chunks
     int size_chunks = num_records / num_chunks;
     int reminder = num_records % num_chunks;
     for(int i=0; i < num_chunks; i++){
@@ -46,35 +49,19 @@ int compare_freq(const void *rec1, const void *rec2) {
     }
 }
 
-int merge(struct rec *source, int size, char *outfile, int num_times){
-    int index = 0;
-    struct rec smallest_rec;
-    FILE *outfp;
-    if(num_times == 0){
-        outfp = fopen(outfile, "w");
-    }
-    else{
-        outfp = fopen(outfile, "a");
-    }
+//merge each chunks from child processors
+void merge(struct rec *smallest_rec, struct rec *source, int size, char *outfile, int *index){
+    //find the smallest record in the source array
     for(int i=0; i < size; i++){
         if(i==0){
-            smallest_rec = source[i];
-            index = i;
+            *smallest_rec = source[i];
+            *index = i;
         }
         else{
-            if(smallest_rec.freq > source[i].freq){
-                smallest_rec = source[i];
-                index = i;
+            if(smallest_rec->freq > source[i].freq){
+                *smallest_rec = source[i];
+                *index = i;
             }
         }
     }
-    if(fwrite(&smallest_rec, sizeof(struct rec), 1, outfp) != 1){
-        perror("fwrite");
-        exit(1);
-    }
-    if(fclose(outfp) != 0){
-        perror("fclose");
-        exit(1);
-    }
-    return index;
 }
