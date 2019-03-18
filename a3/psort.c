@@ -106,6 +106,7 @@ int main(int argc, char *argv[]){
                 perror("fclose");
                 exit(1);
             }
+            free(size_chunks);
             //exit the child processor
             exit(0);
         }
