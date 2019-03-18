@@ -134,7 +134,7 @@ int main(int argc, char *argv[]){
     //the current array which need to find the smallest
     struct rec sorting_recs[num_process];
     //the smallest record
-    struct rec *smallest_rec = malloc(sizeof(struct rec *));
+    struct rec *smallest_rec = malloc(sizeof(struct rec));
     //the position of smallest record in the array
     int index_smallest = 0;
 
@@ -190,6 +190,5 @@ int main(int argc, char *argv[]){
             exit(1);
         }
     }
-    free(smallest_rec);
     free(size_chunks);
 }
