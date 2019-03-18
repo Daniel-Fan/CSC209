@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
+#include<sys/wait.h> 
 #include "helper.h"
 #define UPPER 30000
 
