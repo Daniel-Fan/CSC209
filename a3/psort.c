@@ -190,5 +190,6 @@ int main(int argc, char *argv[]){
             exit(1);
         }
     }
+    free(smallest_rec);
     free(size_chunks);
 }
