@@ -37,14 +37,24 @@ int main(int argc, char *argv[]){
     //the size of input file and count the number of records
     int size_file = get_file_size(infile);
     int num_records = size_file / sizeof(struct rec);
-    
-    //TODO: Check errors for input.
+
+    //check the error for input file and num_processor
+    if(num_records < num_process){
+        fprintf(stderr, "Too many process, there is no enough record\n");
+        exit(1);
+    }else if(num_process == 0){
+        fprintf(stderr, "The process should not be zero\n");
+        exit(1);
+    }
+    int num_remind = size_file % sizeof(struct rec);
+    if(num_remind != 0){
+        fprintf(stderr, "Invalid input file\n");
+        exit(1);
+    }
 
     //divide records to num_processor parts and store the amount for each chunk in an array
     int *size_chunks = divide_records(num_process, num_records);
-    for(int i = 0; i< num_process; i++){
-        fprintf(stderr, "%d\n", size_chunks[i]);
-    }
+
     int pipe_fd[num_process][2];
     for(int i=0; i<num_process; i++){
         //create pipe
@@ -95,17 +105,15 @@ int main(int argc, char *argv[]){
 
             //sort in each child processor
             qsort(records, size_chunks[i], sizeof(struct rec), compare_freq);
-            fprintf(stderr, "%d %s\n", records[1365].freq, records[1365].word);
+
             //write each sorted records to pipe
             for (int index = 0; index < size_chunks[i]; index++){
-                fprintf(stderr, "Before writing the %dth index\n", index);
                 if (write(pipe_fd[i][1], &(records[index]), sizeof(struct rec)) == -1){
                     perror("writing records to pipe in child");
                     exit(1);
                 }
-                fprintf(stderr, "After writing the %dth index\n", index);
             }
-            fprintf(stderr, "Writing complete");
+
             //close write in child after finishing writing the data to pipe
             if(close(pipe_fd[i][1]) == -1){
                 perror("closing write in child");
@@ -128,6 +136,7 @@ int main(int argc, char *argv[]){
                 perror("closing write in parent");
                 exit(1);
             }
+            //parent use wait to check whether the child exit normally
             pid_t pid;
             int status;
             if((pid = wait(&status)) == -1){
@@ -135,13 +144,8 @@ int main(int argc, char *argv[]){
                 exit(1);
             }else if(!WIFEXITED(status)){
                 fprintf(stderr, "Child terminated abnormally\n");
-                exit(1);
             }
         }
-    }
-    //parent use wait to check whether the child exit normally
-    for(int i=0; i<num_process; i++){
-        
     }
 
     //parent merge each chunks from the child processors
