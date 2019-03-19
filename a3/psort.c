@@ -53,7 +53,16 @@ int main(int argc, char *argv[]){
     }
 
     //divide records to num_processor parts and store the amount for each chunk in an array
-    int *size_chunks = divide_records(num_process, num_records);
+    int *size_chunks = malloc(sizeof(int)*num_process);
+    int init_size_chunks = num_records / num_process;
+    int reminder = num_records % num_process;
+    for(int i=0; i < num_process; i++){
+        size_chunks[i] = init_size_chunks;
+        if(reminder != 0){
+            size_chunks[i] += 1;
+            reminder--;
+        }
+    }
 
     int pipe_fd[num_process][2];
     for(int i=0; i<num_process; i++){

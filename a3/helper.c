@@ -16,24 +16,6 @@ int get_file_size(char *filename) {
     return sbuf.st_size;
 }
 
-//divide the input file to n parts for n child processors
-int *divide_records(int num_chunks, int num_records){
-    //malloc for chunks
-    int *chunks_records;
-    chunks_records = malloc(sizeof(int)*num_chunks);
-    //find the size of each chunks
-    int size_chunks = num_records / num_chunks;
-    int reminder = num_records % num_chunks;
-    for(int i=0; i < num_chunks; i++){
-        chunks_records[i] = size_chunks;
-        if(reminder != 0){
-            chunks_records[i] += 1;
-            reminder--;
-        }
-    }
-    return chunks_records;
-}
-
 /* A comparison function to use for qsort */
 int compare_freq(const void *rec1, const void *rec2) {
 
