@@ -16,6 +16,22 @@ int get_file_size(char *filename) {
     return sbuf.st_size;
 }
 
+//find the smallest_rec and the index in the array
+void merge(struct rec **smallest_rec, struct rec *sorting_recs, int num_process, int *index_smallest){
+    for(int i=0; i < num_process; i++){
+        if(i==0){
+            *smallest_rec = &sorting_recs[i];
+            *index_smallest = i;
+        }
+        else{
+            if((*smallest_rec)->freq > sorting_recs[i].freq){
+                *smallest_rec = &sorting_recs[i];
+                *index_smallest = i;
+            }
+        }
+    }
+}
+
 /* A comparison function to use for qsort */
 int compare_freq(const void *rec1, const void *rec2) {
 

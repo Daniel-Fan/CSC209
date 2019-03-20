@@ -165,15 +165,6 @@ int main(int argc, char *argv[]){
                 perror("closing write in parent");
                 exit(1);
             }
-            //parent use wait to check whether the child exit normally
-            pid_t pid;
-            int status;
-            if((pid = wait(&status)) == -1){
-                perror("wait");
-                exit(1);
-            }else if(!WIFEXITED(status)){
-                fprintf(stderr, "Child terminated abnormally\n");
-            }
         }
     }
 
@@ -190,7 +181,7 @@ int main(int argc, char *argv[]){
         exit(1);
     }
     //the smallest record
-    struct rec *smallest_rec;
+    struct rec **smallest_rec = malloc(sizeof(struct rec *));
     //the position of smallest record in the array
     int index_smallest = 0;
 
@@ -218,21 +209,10 @@ int main(int argc, char *argv[]){
     //start to find smallest record and add to the output file
     while(num_sorted < num_records){
         //find the smallest_rec and the index in the array
-        for(int i=0; i < num_process; i++){
-            if(i==0){
-                smallest_rec = &sorting_recs[i];
-                index_smallest = i;
-            }
-            else{
-                if(smallest_rec->freq > sorting_recs[i].freq){
-                    smallest_rec = &sorting_recs[i];
-                    index_smallest = i;
-                }
-            }
-        }
+        merge(smallest_rec, sorting_recs, num_process, &index_smallest);
 
         //write the smallest record to the output file
-        if(fwrite(smallest_rec, sizeof(struct rec), 1, outfp) != 1){
+        if(fwrite(*smallest_rec, sizeof(struct rec), 1, outfp) != 1){
             perror("fwrite");
             exit(1);
         }
@@ -259,12 +239,23 @@ int main(int argc, char *argv[]){
     }
     //close the read pipe in parent
     for(int i=0; i<num_process; i++){
+        //parent use wait to check whether the child exit normally
+            pid_t pid;
+            int status;
+            if((pid = wait(&status)) == -1){
+                perror("wait");
+                exit(1);
+            }else if(!WIFEXITED(status)){
+                fprintf(stderr, "Child terminated abnormally\n");
+            }
         if(close(pipe_fd[i][0]) == -1){
             perror("closing read in parent");
             exit(1);
         }
     }
     free_fd(pipe_fd, num_process);
+    free(smallest_rec);
     free(sorting_recs);
     free(size_chunks);
+    return 0;
 }
