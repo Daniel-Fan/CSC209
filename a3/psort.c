@@ -39,11 +39,8 @@ int main(int argc, char *argv[]){
     int num_records = size_file / sizeof(struct rec);
 
     //check the error for input file and num_processor
-    if(num_records < num_process){
-        fprintf(stderr, "Too many process, there is no enough record\n");
-        exit(1);
-    }else if(num_process == 0){
-        fprintf(stderr, "The process should not be zero\n");
+    if(num_process <= 0){
+        fprintf(stderr, "The process should not be zero or negative\n");
         exit(1);
     }
     int num_remind = size_file % sizeof(struct rec);
@@ -54,6 +51,10 @@ int main(int argc, char *argv[]){
 
     //divide records to num_processor parts and store the amount for each chunk in an array
     int *size_chunks = malloc(sizeof(int)*num_process);
+    if(size_chunks == NULL){
+        perror("malloc for chunks");
+        exit(1);
+    }
     int init_size_chunks = num_records / num_process;
     int reminder = num_records % num_process;
     for(int i=0; i < num_process; i++){
@@ -64,7 +65,17 @@ int main(int argc, char *argv[]){
         }
     }
 
-    int pipe_fd[num_process][2];
+    int **pipe_fd = malloc(sizeof(int *) * num_process);
+    if(pipe_fd == NULL){
+        perror("malloc for pipe");
+        exit(1);
+    }
+    for(int i = 0; i< num_process; i++){
+        if((pipe_fd[i] = malloc(sizeof(int) * 2)) == NULL){
+            perror("malloc for pipe for each child");
+            exit(1);
+        }
+    }
     for(int i=0; i<num_process; i++){
         //create pipe
         if ((pipe(pipe_fd[i]))== -1){
@@ -78,20 +89,22 @@ int main(int argc, char *argv[]){
             perror("fork");
             exit(1);
         }
-        //child processor
+        //child process
         else if(n == 0){
             //count the position which need to offset in this child processor
             int num_offset = 0;
             for(int pos=0; pos < i; pos++){
                 num_offset += size_chunks[pos];
             }
-
+            int child_no;
             //close the read in the child
-            if(close(pipe_fd[i][0]) == -1){
-                perror("closing read in child");
-                exit(1);
+            for(child_no = 0; child_no <= i; child_no++){
+                if(close(pipe_fd[child_no][0]) == -1){
+                    perror("closing read in child");
+                    exit(1);
+                }
             }
-
+            
             //open the input file
             FILE *fp;
             if((fp = fopen(infile, "rb")) == NULL){
@@ -107,17 +120,23 @@ int main(int argc, char *argv[]){
 
             //read size_chunks[i] records to the array
             struct rec *records = malloc(sizeof(struct rec) * size_chunks[i]);
-            if (fread(records, sizeof(struct rec), size_chunks[i], fp) == -1){
-                perror("fread");
+            if(records == NULL){
+                perror("malloc for records in each child");
                 exit(1);
             }
-
+            for(int index = 0; index < size_chunks[i]; index ++){
+                if (fread(&(records[index]), sizeof(struct rec), 1, fp) == -1){
+                    perror("fread");
+                    exit(1);
+                }
+            }
+            
             //sort in each child processor
             qsort(records, size_chunks[i], sizeof(struct rec), compare_freq);
 
             //write each sorted records to pipe
             for (int index = 0; index < size_chunks[i]; index++){
-                if (write(pipe_fd[i][1], &(records[index]), sizeof(struct rec)) == -1){
+                if (write(pipe_fd[i][1], &(records[index]), sizeof(struct rec)) != sizeof(struct rec)){
                     perror("writing records to pipe in child");
                     exit(1);
                 }
@@ -133,12 +152,13 @@ int main(int argc, char *argv[]){
                 perror("fclose");
                 exit(1);
             }
+            free_fd(pipe_fd, num_process);
             free(records);
             free(size_chunks);
             //exit the child processor
             exit(0);
         }
-        //parent processor
+        //parent process
         else{
             //close write pipe in parent processor
             if(close(pipe_fd[i][1]) == -1){
@@ -159,10 +179,18 @@ int main(int argc, char *argv[]){
 
     //parent merge each chunks from the child processors
     int num_sorted = 0;
+    int num_left[num_process];
+    for(int i = 0; i< num_process; i++){
+        num_left[i] = size_chunks[i];
+    }
     //the current array which need to find the smallest
-    struct rec sorting_recs[num_process];
+    struct rec *sorting_recs = malloc(sizeof(struct rec) * num_process);
+    if(sorting_recs == NULL){
+        perror("malloc for sorting_rec for each child");
+        exit(1);
+    }
     //the smallest record
-    struct rec *smallest_rec = malloc(sizeof(struct rec));
+    struct rec *smallest_rec;
     //the position of smallest record in the array
     int index_smallest = 0;
 
@@ -174,36 +202,54 @@ int main(int argc, char *argv[]){
         perror("fopen");
         exit(1);
     }
+
+    //the first time to merge
+    //read one record from each pipe and write the sorting array
+    for(int j=0; j < num_process; j++){
+        if(num_left[j] == 0){
+            sorting_recs[j].freq = UPPER + 1;
+        }
+        else if(read(pipe_fd[j][0], &sorting_recs[j], sizeof(struct rec)) < 0){
+            perror("reading records from pipe when num_sorted is 0");
+            exit(1);
+        }
+            num_left[j]--;
+    }
     //start to find smallest record and add to the output file
     while(num_sorted < num_records){
-        //the first time to merge
-        if(num_sorted == 0){
-            //read one record from each pipe and write the sorting array
-            for(int j=0; j < num_process; j++){
-                if(read(pipe_fd[j][0], &sorting_recs[j], sizeof(struct rec)) < 0){
-                    perror("reading records from pipe when num_sorted is 0");
-                    exit(1);
+        //find the smallest_rec and the index in the array
+        for(int i=0; i < num_process; i++){
+            if(i==0){
+                smallest_rec = &sorting_recs[i];
+                index_smallest = i;
+            }
+            else{
+                if(smallest_rec->freq > sorting_recs[i].freq){
+                    smallest_rec = &sorting_recs[i];
+                    index_smallest = i;
                 }
             }
         }
-        else{
-            //there is no record left in pipe
-            if((result = (read(pipe_fd[index_smallest][0], &sorting_recs[index_smallest], sizeof(struct rec)))) == 0){
-                sorting_recs[index_smallest].freq = UPPER + 1;
-            }
-            else if(result < 0){
-                perror("reading records from pipe");
-                exit(1);
-            }
-        }
-        //find the smallest_rec and the index in the array
-        merge(smallest_rec, sorting_recs, num_process, outfile, &index_smallest);
+
         //write the smallest record to the output file
         if(fwrite(smallest_rec, sizeof(struct rec), 1, outfp) != 1){
             perror("fwrite");
             exit(1);
         }
         num_sorted++;
+
+        //there is no record left in pipe
+        if(num_left[index_smallest] <= 0){
+            sorting_recs[index_smallest].freq = UPPER + 1;
+        }
+        else{
+            result = (read(pipe_fd[index_smallest][0], &sorting_recs[index_smallest], sizeof(struct rec)));
+            if(result < 0){
+                perror("reading records from pipe");
+                exit(1);
+            }
+        }
+        num_left[index_smallest]--;
     }
 
     //close the output file
@@ -218,6 +264,7 @@ int main(int argc, char *argv[]){
             exit(1);
         }
     }
-    free(smallest_rec);
+    free_fd(pipe_fd, num_process);
+    free(sorting_recs);
     free(size_chunks);
 }

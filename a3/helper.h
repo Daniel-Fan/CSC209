@@ -11,5 +11,5 @@ struct rec {
 int get_file_size(char *filename);
 int compare_freq(const void *rec1, const void *rec2);
 void merge(struct rec *smallest_rec, struct rec *source, int size, char *outfile, int *index);
-
+void free_fd(int **pipe_fd, int num_process);
 #endif /* _HELPER_H */
