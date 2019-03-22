@@ -88,13 +88,12 @@ int main() {
  * Definitely do not use strchr or other string functions to search here. (Why not?)
  */
 int find_network_newline(const char *buf, int n) {
-    int result = -1;
     for(int i=1; i<n; i++){
         if(buf[i-1] == '\r'){
             if(buf[i] == '\n'){
-                result = i + 1;
+                return i + 1;
             }
         }
     }
-    return result;
+    return -1;
 }
