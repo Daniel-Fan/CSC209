@@ -1,0 +1,60 @@
+Script started on Fri 22 Mar 2019 02:28:49 PM EDT
+]0;fanyuch1@b2210-22:/h/u10/c8/00/fanyuch1/CSC209/fanyuch1/lab10b2210-22:~/CSC209/fanyuch1/lab10$ gdb read[K[K[Kandclien[Knt
+GNU gdb (Ubuntu 7.11.1-0ubuntu1~16.5) 7.11.1
+Copyright (C) 2016 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+<http://www.gnu.org/software/gdb/documentation/>.
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from randclient...done.
+(gdb) n[Kb 23
+Breakpoint 1 at 0x400b45: file randclient.c, line 23.
+(gdb) run 127.0.0.1
+Starting program: /h/u10/c8/00/fanyuch1/CSC209/fanyuch1/lab10/randclient 127.0.0.1
+
+Breakpoint 1, main (argc=2, argv=0x7fffffffe7e8) at randclient.c:24
+24	    if (argc != 2) {
+(gdb) n
+29	    int soc = connect_to_server(PORT, argv[1]);
+(gdb) n
+connect: Connection refused
+[Inferior 1 (process 4187) exited with code 01]
+(gdb) n
+The program is not being run.
+(gdb) r 127.0.0.1
+Starting program: /h/u10/c8/00/fanyuch1/CSC209/fanyuch1/lab10/randclient 127.0.0.1
+
+Breakpoint 1, main (argc=2, argv=0x7fffffffe7e8) at randclient.c:24
+24	    if (argc != 2) {
+(gdb) n
+29	    int soc = connect_to_server(PORT, argv[1]);
+(gdb) 
+31	    write_random_pieces(soc, MESSAGE, TIMES);
+(gdb) 
+33	    close(soc);
+(gdb) 
+34	    return 0;
+(gdb) 
+35	}
+(gdb) 
+__libc_start_main (main=0x400b36 <main>, argc=2, argv=0x7fffffffe7e8, 
+    init=<optimized out>, fini=<optimized out>, rtld_fini=<optimized out>, 
+    stack_end=0x7fffffffe7d8) at ../csu/libc-start.c:325
+325	../csu/libc-start.c: No such file or directory.
+(gdb) 
+[Inferior 1 (process 4196) exited normally]
+(gdb) 
+The program is not being run.
+(gdb) q
+]0;fanyuch1@b2210-22:/h/u10/c8/00/fanyuch1/CSC209/fanyuch1/lab10b2210-22:~/CSC209/fanyuch1/lab10$ exit
+exit
+
+Script done on Fri 22 Mar 2019 02:32:22 PM EDT
