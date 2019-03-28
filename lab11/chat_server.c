@@ -45,8 +45,17 @@ int accept_connection(int fd, struct sockname *usernames) {
         exit(1);
     }
 
+    //read username
+    char buf[BUF_SIZE + 1];
+    int num_read = read(client_fd, buf, BUF_SIZE);
+    if(num_read == -1)
+    {
+        perror("read_username:");
+        exit(1);
+    }
+    buf[num_read] = '\0';
     usernames[user_index].sock_fd = client_fd;
-    usernames[user_index].username = NULL;
+    usernames[user_index].username = strdup(buf);
     return client_fd;
 }
 
@@ -57,14 +66,30 @@ int accept_connection(int fd, struct sockname *usernames) {
 int read_from(int client_index, struct sockname *usernames) {
     int fd = usernames[client_index].sock_fd;
     char buf[BUF_SIZE + 1];
-
     int num_read = read(fd, &buf, BUF_SIZE);
     buf[num_read] = '\0';
     if (num_read == 0 || write(fd, buf, strlen(buf)) != strlen(buf)) {
         usernames[client_index].sock_fd = -1;
         return fd;
     }
+    char result[BUF_SIZE + 1];
+    strcpy(result, usernames[client_index].username);
+    strcat(result, ": ");
+    strcat(result, buf);
 
+    for(int i = 0; i < MAX_CONNECTIONS; i++){
+        int fd = usernames[i].sock_fd;
+        if(i == client_index || fd == -1){
+            continue;
+        }
+        else{
+            int num_written = write(fd, result, strlen(result));
+            if(num_written != strlen(result)){
+                perror("write to client");
+                exit(1);
+            }
+        }
+    }
     return 0;
 }
 
