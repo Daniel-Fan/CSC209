@@ -28,14 +28,7 @@ int main(void) {
         perror("client: inet_pton");
         close(sock_fd);
         exit(1);
-    }
-
-    //ask for username
-    char username_buf[BUF_SIZE + 1];
-    printf("Please enter your username:\n");
-    scanf("%s", username_buf);
-    int num_username;
-    for(num_username = 0; username_buf[num_username] != '\0'; ++num_username);
+    }    
 
     // Connect to the server.
     if (connect(sock_fd, (struct sockaddr *)&server, sizeof(server)) == -1) {
@@ -44,19 +37,25 @@ int main(void) {
         exit(1);
     }
 
-    int num_written = write(sock_fd, username_buf, num_username);
-    if (num_written != num_username) {
+    //ask for username
+    char username_buf[BUF_SIZE + 1];
+    printf("Please enter your username:\n");
+    int num_read = read(STDIN_FILENO, username_buf, BUF_SIZE);
+    username_buf[num_read-1] = '\0';     
+    int num_written = write(sock_fd, username_buf, num_read);
+    if (num_written != num_read) {
         perror("client: write username");
         close(sock_fd);
         exit(1);
     }
 
     // file descriptors by initializing a set of file descriptors.
-    int max_fd = sock_fd;
+  
     fd_set all_fds;
     FD_ZERO(&all_fds);
     FD_SET(sock_fd, &all_fds);
     FD_SET(STDIN_FILENO, &all_fds);
+    int max_fd = sock_fd;
 
     // Read input from the user, send it to the server, and then accept the
     // echo that returns. Exit when stdin is closed.
@@ -85,7 +84,7 @@ int main(void) {
             }
         }
 
-        if(FD_ISSET(STDIN_FILENO, &listen_fds)){
+        if(FD_ISSET(sock_fd, &listen_fds)){
             int num_read = read(sock_fd, buf, BUF_SIZE);
             buf[num_read] = '\0';
             printf("Received from server: %s", buf);
