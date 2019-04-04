@@ -518,6 +518,15 @@ int read_msg(struct game_state *game, int fd, char *msg){
     
     // find out the newline character
     int where = find_network_newline(buf, MAX_BUF);
+    while(where == -1 && nbytes != 0){
+        nbytes = read(fd, buf+nbytes, MAX_BUF);
+        if(nbytes == -1){
+            return fd;
+        }
+        printf("[%d] read %d bytes\n", fd, nbytes);
+        where = find_network_newline(buf, MAX_BUF);
+    }
+
     buf[where-2] = '\0';
     
     if(nbytes == 0){
