@@ -246,6 +246,7 @@ void broadcast(struct game_state *game){
             is_disconnect(game, fd);
         }
     }
+    free(status);
 }
 
 void not_your_turn(struct game_state *game, int cur_fd){
